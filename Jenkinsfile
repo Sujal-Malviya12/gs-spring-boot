@@ -23,10 +23,13 @@ pipeline {
         stage('Build + Unit Tests') {
     steps {
         dir('complete') {
+            bat 'cd'
+            bat 'dir'
             bat 'mvn -U -B clean verify'
         }
     }
 }
+
 
 
         stage('SonarQube Scan') {
