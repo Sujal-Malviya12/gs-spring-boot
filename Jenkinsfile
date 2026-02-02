@@ -21,10 +21,13 @@ pipeline {
         }
 
         stage('Build + Unit Tests') {
-            steps {
-                bat 'mvn -U -B clean verify'
-            }
+    steps {
+        dir('complete') {
+            bat 'mvn -U -B clean verify'
         }
+    }
+}
+
 
         stage('SonarQube Scan') {
             options {
