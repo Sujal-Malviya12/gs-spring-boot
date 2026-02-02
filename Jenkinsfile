@@ -33,18 +33,21 @@ pipeline {
 
 
         stage('SonarQube Scan') {
-            options {
-                timeout(time: 45, unit: 'MINUTES')
-            }
-            steps {
-                withSonarQubeEnv('sonarqube') {
-                    bat '''
-                        mvn sonar:sonar ^
-                        -Dsonar.projectKey=%SONAR_PROJECT_KEY%
-                    '''
-                }
+    options {
+        timeout(time: 45, unit: 'MINUTES')
+    }
+    steps {
+        dir('complete') {
+            withSonarQubeEnv('sonarqube') {
+                bat """
+                mvn sonar:sonar ^
+                -Dsonar.projectKey=%SONAR_PROJECT_KEY%
+                """
             }
         }
+    }
+}
+
 
         // ❌ REMOVED: SonarQube Quality Gate (webhook blocked on same host)
         // stage('SonarQube Quality Gate') {
