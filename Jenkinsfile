@@ -16,8 +16,8 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                dir('complete') {
-                    sh 'mvn clean test'
+                dir('complete/complete') {
+                    bat 'mvn clean test'
                 }
             }
         }
@@ -27,13 +27,13 @@ pipeline {
                 SONAR_TOKEN = credentials('sonar-token')
             }
             steps {
-                dir('complete') {
+                dir('complete/complete') {
                     withSonarQubeEnv('sonarqube') {
-                        sh '''
-                        mvn sonar:sonar \
-                        -Dsonar.projectKey=gs-spring-boot-demo \
-                        -Dsonar.login=$SONAR_TOKEN
-                        '''
+                        bat """
+                        mvn sonar:sonar ^
+                        -Dsonar.projectKey=gs-spring-boot-demo ^
+                        -Dsonar.login=%SONAR_TOKEN%
+                        """
                     }
                 }
             }
@@ -41,7 +41,7 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
@@ -49,11 +49,11 @@ pipeline {
 
         stage('JMeter') {
             steps {
-                sh '''
-                jmeter -n \
-                -t jmeter/test-plan.jmx \
-                -l jmeter/results.jtl
-                '''
+                bat """
+                "C:\\tools\\apache-jmeter-5.6.3\\bin\\jmeter.bat" -n ^
+                 -t "%WORKSPACE%\\jmeter\\petclinic-smoke.jmx" ^
+                 -l "%WORKSPACE%\\jmeter\\results.jtl"
+                """
             }
         }
     }
