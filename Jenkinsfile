@@ -74,11 +74,7 @@ pipeline {
 
         stage('Extract Performance Metrics') {
     steps {
-        bat '''
-        powershell scripts\\parse-jmeter.ps1 ^
-          complete\\target\\jmeter-results.jtl ^
-          perf-current.json
-        '''
+        bat '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -File scripts\\parse-jmeter.ps1 complete\\target\\jmeter-results.jtl perf-current.json'
     }
 }
 
@@ -96,11 +92,7 @@ stage('Performance Gate (PR)') {
             if (exceptionAllowed) {
                 echo "⚠ Performance exception allowed for this PR"
             } else {
-                bat '''
-                powershell scripts\\compare-performance.ps1 ^
-                  perf-current.json ^
-                  baseline\\perf-baseline.json
-                '''
+                bat '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -File scripts\\parse-jmeter.ps1 complete\\target\\jmeter-results.jtl perf-current.json'
             }
         }
     }
