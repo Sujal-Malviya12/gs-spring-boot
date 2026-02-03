@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloController {
 
   @GetMapping("/")
-  public String index() {
+public String index() throws InterruptedException {
+    Thread.sleep(300); // intentional slowdown for perf gating
     return "Greetings from Spring Boot!";
-  }
+}
+
 
 }
