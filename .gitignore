@@ -16,3 +16,8 @@ dependency-reduced-pom.xml
 README.html
 .idea
 *.iml
+complete/initial/
+complete/initial-kotlin/
+complete/complete/
+complete/complete-kotlin/
+complete/test/
