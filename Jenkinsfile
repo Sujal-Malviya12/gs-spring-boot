@@ -64,15 +64,14 @@ pipeline {
         stage('JMeter Performance Test') {
     steps {
         bat """
-        if not exist "%WORKSPACE%\\target" mkdir "%WORKSPACE%\\target"
-
         "%JMETER_HOME%\\bin\\jmeter.bat" -n ^
          -t "%WORKSPACE%\\jmeter\\petclinic-smoke.jmx" ^
-         -l "%WORKSPACE%\\target\\jmeter-results.jtl" ^
-         -e -o "%WORKSPACE%\\target\\jmeter-report"
+         -l "%WORKSPACE%\\complete\\target\\jmeter-results.jtl" ^
+         -e -o "%WORKSPACE%\\complete\\target\\jmeter-report"
         """
     }
 }
+
 
 
         stage('Stop App') {
@@ -88,12 +87,16 @@ pipeline {
     }
 
     post {
-        always {
-            junit allowEmptyResults: true, testResults: 'complete/target/surefire-reports/*.xml'
-            archiveArtifacts artifacts: 'target/jmeter-results.jtl, target/jmeter-report/**', fingerprint: true
-        }
-        cleanup {
-            cleanWs()
-        }
+    always {
+        junit allowEmptyResults: true,
+              testResults: 'complete/target/surefire-reports/*.xml'
+
+        archiveArtifacts artifacts: 'complete/target/jmeter-results.jtl, complete/target/jmeter-report/**',
+                         fingerprint: true
     }
+    cleanup {
+        cleanWs()
+    }
+}
+
 }
