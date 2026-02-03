@@ -1,15 +1,9 @@
 pipeline {
     agent any
 
-    options {
-        timestamps()
-        disableConcurrentBuilds()
-    }
-
-    environment {
-        APP_PORT = "9966"
-        JMETER_HOME = "C:\\tools\\apache-jmeter-5.6.3"
-        SONAR_PROJECT_KEY = "petclinic-rest-testing-demo"
+    tools {
+        jdk 'jdk-21'
+        maven 'maven-3'
     }
 
     stages {
@@ -20,87 +14,47 @@ pipeline {
             }
         }
 
-        stage('Build + Unit Tests') {
-    steps {
-        dir('complete') {
-            bat 'cd'
-            bat 'dir'
-            bat 'mvn -U -B clean verify'
-        }
-    }
-}
-
-
-
-        stage('SonarQube Scan') {
-            options {
-                timeout(time: 45, unit: 'MINUTES')
-            }
+        stage('Build & Test') {
             steps {
-                withSonarQubeEnv('sonarqube') {
-                    bat '''
-                        mvn sonar:sonar ^
-                        -Dsonar.projectKey=%SONAR_PROJECT_KEY%
-                    '''
+                dir('complete') {
+                    sh 'mvn clean test'
                 }
             }
         }
 
-        // ❌ REMOVED: SonarQube Quality Gate (webhook blocked on same host)
-        // stage('SonarQube Quality Gate') {
-        //     steps {
-        //         timeout(time: 10, unit: 'MINUTES') {
-        //             waitForQualityGate abortPipeline: true
-        //         }
-        //     }
-        // }
-
-        stage('Start App (for JMeter)') {
+        stage('SonarQube Analysis') {
+            environment {
+                SONAR_TOKEN = credentials('sonar-token')
+            }
             steps {
-                bat '''
-                    echo Starting Petclinic on port %APP_PORT%
-                    start "petclinic" /B mvn spring-boot:run ^
-                    -Dspring-boot.run.arguments=--server.port=%APP_PORT%
-                    ping 127.0.0.1 -n 20 > nul
-                '''
+                dir('complete') {
+                    withSonarQubeEnv('sonarqube') {
+                        sh '''
+                        mvn sonar:sonar \
+                        -Dsonar.projectKey=gs-spring-boot-demo \
+                        -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
+                }
             }
         }
 
-        stage('JMeter Performance Test') {
-    steps {
-        bat """
-        "%JMETER_HOME%\\bin\\jmeter.bat" -n ^
-         -t "%WORKSPACE%\\complete\\complete\\jmeter\\petclinic-smoke.jmx" ^
-         -l "%WORKSPACE%\\target\\jmeter-results.jtl" ^
-         -e -o "%WORKSPACE%\\target\\jmeter-report"
-        """
-    }
-}
-
-
-        stage('Stop App') {
+        stage('Quality Gate') {
             steps {
-                bat '''
-                    echo Stopping application running on port %APP_PORT%
-
-                    for /f "tokens=5" %%a in ('netstat -ano ^| findstr :%APP_PORT%') do (
-                        echo Killing PID %%a
-                        taskkill /PID %%a /F
-                    )
-
-                    exit /b 0
-                '''
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
-    }
 
-    post {
-        always {
-            junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
-            archiveArtifacts artifacts: 'target/jmeter-results.jtl, target/jmeter-report/**', fingerprint: true
-        }
-        cleanup {
-            cleanWs(deleteDirs: true, disableDeferredWipeout: true)
+        stage('JMeter') {
+            steps {
+                sh '''
+                jmeter -n \
+                -t jmeter/test-plan.jmx \
+                -l jmeter/results.jtl
+                '''
+            }
         }
     }
 }
