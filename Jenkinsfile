@@ -72,6 +72,49 @@ pipeline {
     }
 }
 
+        stage('Extract Performance Metrics') {
+    steps {
+        bat '''
+        powershell scripts\\parse-jmeter.ps1 ^
+          complete\\target\\jmeter-results.jtl ^
+          perf-current.json
+        '''
+    }
+}
+
+stage('Performance Gate (PR)') {
+    when {
+        changeRequest()
+    }
+    steps {
+        script {
+            def exceptionAllowed = bat(
+                script: 'git log -1 --pretty=%B | findstr PERF-EXCEPTION',
+                returnStatus: true
+            ) == 0
+
+            if (exceptionAllowed) {
+                echo "⚠ Performance exception allowed for this PR"
+            } else {
+                bat '''
+                powershell scripts\\compare-performance.ps1 ^
+                  perf-current.json ^
+                  baseline\\perf-baseline.json
+                '''
+            }
+        }
+    }
+}
+
+        stage('Update Performance Baseline') {
+    when {
+        branch 'main'
+    }
+    steps {
+        bat 'copy perf-current.json baseline\\perf-baseline.json'
+    }
+}
+
 
 
         stage('Stop App') {
