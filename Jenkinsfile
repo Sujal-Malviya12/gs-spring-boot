@@ -74,29 +74,29 @@ pipeline {
 
         stage('Extract Performance Metrics') {
     steps {
-        bat '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -File scripts\\parse-jmeter.ps1 complete\\target\\jmeter-results.jtl perf-current.json'
+        bat '''
+        "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" ^
+        -ExecutionPolicy Bypass ^
+        -File scripts\\parse-jmeter.ps1 ^
+        complete\\target\\jmeter-results.jtl ^
+        perf-current.json
+        '''
     }
 }
 
 stage('Performance Gate (PR)') {
-    when {
-        changeRequest()
-    }
+    when { changeRequest() }
     steps {
-        script {
-            def exceptionAllowed = bat(
-                script: 'git log -1 --pretty=%B | findstr PERF-EXCEPTION',
-                returnStatus: true
-            ) == 0
-
-            if (exceptionAllowed) {
-                echo "⚠ Performance exception allowed for this PR"
-            } else {
-                bat '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -File scripts\\parse-jmeter.ps1 complete\\target\\jmeter-results.jtl perf-current.json'
-            }
-        }
+        bat '''
+        "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" ^
+        -ExecutionPolicy Bypass ^
+        -File scripts\\compare-performance.ps1 ^
+        perf-current.json ^
+        baseline\\perf-baseline.json
+        '''
     }
 }
+
 
         stage('Update Performance Baseline') {
     when {
