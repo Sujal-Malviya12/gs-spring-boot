@@ -20,21 +20,9 @@ pipeline {
             }
         }
 
-        stage('DEBUG – Find POM') {
-    steps {
-        bat 'cd'
-        bat 'dir'
-        bat 'dir complete'
-        bat 'dir complete\\complete'
-        bat 'dir complete\\complete\\pom.xml'
-        bat 'dir complete\\pom.xml'
-    }
-}
-
-
         stage('Build + Unit Tests') {
             steps {
-                dir('complete/complete') {
+                dir('complete') {
                     bat 'mvn -U -B clean verify'
                 }
             }
@@ -42,7 +30,7 @@ pipeline {
 
         stage('SonarQube Scan') {
             steps {
-                dir('complete/complete') {
+                dir('complete') {
                     withSonarQubeEnv('sonarqube') {
                         bat """
                         mvn sonar:sonar ^
@@ -63,7 +51,7 @@ pipeline {
 
         stage('Start App (for JMeter)') {
             steps {
-                dir('complete/complete') {
+                dir('complete') {
                     bat """
                     start "spring-boot-app" /B mvn spring-boot:run ^
                     -Dspring-boot.run.arguments=--server.port=%APP_PORT%
@@ -98,7 +86,7 @@ pipeline {
 
     post {
         always {
-            junit allowEmptyResults: true, testResults: 'complete/complete/target/surefire-reports/*.xml'
+            junit allowEmptyResults: true, testResults: 'complete/target/surefire-reports/*.xml'
             archiveArtifacts artifacts: 'target/jmeter-results.jtl, target/jmeter-report/**', fingerprint: true
         }
         cleanup {
