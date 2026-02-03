@@ -20,6 +20,18 @@ pipeline {
             }
         }
 
+        stage('DEBUG – Find POM') {
+    steps {
+        bat 'cd'
+        bat 'dir'
+        bat 'dir complete'
+        bat 'dir complete\\complete'
+        bat 'dir complete\\complete\\pom.xml'
+        bat 'dir complete\\pom.xml'
+    }
+}
+
+
         stage('Build + Unit Tests') {
             steps {
                 dir('complete/complete') {
