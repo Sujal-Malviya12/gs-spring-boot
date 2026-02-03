@@ -1,11 +1,9 @@
 pipeline {
     agent any
 
-//     tools {
-//     jdk 'Java-21'
-//     maven 'Maven'
-// }
-
+    tools {
+        jdk 'Java-21'
+    }
 
     stages {
 
@@ -16,13 +14,12 @@ pipeline {
         }
 
         stage('Build & Test') {
-    steps {
-        dir('complete/complete') {
-            bat 'gradlew.bat clean test'
+            steps {
+                dir('complete/complete') {
+                    bat 'gradlew.bat clean test'
+                }
+            }
         }
-    }
-}
-
 
         stage('SonarQube Analysis') {
             environment {
@@ -32,7 +29,7 @@ pipeline {
                 dir('complete/complete') {
                     withSonarQubeEnv('sonarqube') {
                         bat """
-                        mvn sonar:sonar ^
+                        gradlew.bat sonarqube ^
                         -Dsonar.projectKey=gs-spring-boot-demo ^
                         -Dsonar.login=%SONAR_TOKEN%
                         """
