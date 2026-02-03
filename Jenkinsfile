@@ -16,12 +16,13 @@ pipeline {
         }
 
         stage('Build & Test') {
-            steps {
-                dir('complete/complete') {
-                    bat 'mvn clean test'
-                }
-            }
+    steps {
+        dir('complete/complete') {
+            bat 'gradlew.bat clean test'
         }
+    }
+}
+
 
         stage('SonarQube Analysis') {
             environment {
