@@ -62,15 +62,18 @@ pipeline {
         }
 
         stage('JMeter Performance Test') {
-            steps {
-                bat """
-                "%JMETER_HOME%\\bin\\jmeter.bat" -n ^
-                 -t "%WORKSPACE%\\jmeter\\petclinic-smoke.jmx" ^
-                 -l "%WORKSPACE%\\target\\jmeter-results.jtl" ^
-                 -e -o "%WORKSPACE%\\target\\jmeter-report"
-                """
-            }
-        }
+    steps {
+        bat """
+        if not exist "%WORKSPACE%\\target" mkdir "%WORKSPACE%\\target"
+
+        "%JMETER_HOME%\\bin\\jmeter.bat" -n ^
+         -t "%WORKSPACE%\\jmeter\\petclinic-smoke.jmx" ^
+         -l "%WORKSPACE%\\target\\jmeter-results.jtl" ^
+         -e -o "%WORKSPACE%\\target\\jmeter-report"
+        """
+    }
+}
+
 
         stage('Stop App') {
             steps {
