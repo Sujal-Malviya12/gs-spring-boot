@@ -2,10 +2,26 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                mvn clean compile
+                checkout scm
             }
+        }
+
+        stage('Compile') {
+            steps {
+                echo "Compiling project..."
+                bat "mvn clean compile"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Compilation Successful"
+        }
+        failure {
+            echo "Compilation Failed"
         }
     }
 }
