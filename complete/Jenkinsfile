@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -10,18 +11,21 @@ pipeline {
 
         stage('Compile') {
             steps {
-                echo "Compiling project..."
-                bat "mvn clean compile"
+                echo "Listing workspace files..."
+                bat "dir"
+
+                echo "Running Maven Wrapper..."
+                bat "mvnw.cmd clean compile"
             }
         }
     }
 
     post {
         success {
-            echo "Compilation Successful"
+            echo "✅ BUILD SUCCESS"
         }
         failure {
-            echo "Compilation Failed"
+            echo "❌ BUILD FAILED"
         }
     }
 }
